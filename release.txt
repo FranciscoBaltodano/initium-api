@@ -1,0 +1,24 @@
+cambiar el nombre "sisapi-dev" por el que yo quiera nombrar a mi imagen
+>> docker buildx build --platform linux/amd64 -t sisapi-dev:latest . --load
+
+para crear mi contenedor puedo cambiar el nombre de "my-fastapi-container"
+>> docker run -d -p 8000:8000 --name my-fastapi-container --env-file .env sisapi-dev:latest
+
+>> az login
+(no ejecutar este porque es de uayeb ->) az acr login --name siscrdev
+
+(para ejecutar ese comando hay que buscar un container registry en el grupo de recursos)
+>> az acr login --name azurecontainerregistrysiscontdev
+
+
+
+todos los comando a continuacion les debo cambiar el nombre
+de esto -> siscrdev.azurecr.io
+a esto --> azurecontainerregistrysiscontdev.azurecr.io
+porque ese es el nombre de mi container registry
+
+>> docker tag sisapi-dev:latest siscrdev.azurecr.io/sisapi-dev:latest
+>> docker tag sisapi-dev:latest siscrdev.azurecr.io/sisapi-dev:0.0.0
+
+>> docker push siscrdev.azurecr.io/sisapi-dev:latest
+>> docker push siscrdev.azurecr.io/sisapi-dev:0.0.0
