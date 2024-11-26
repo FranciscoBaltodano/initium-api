@@ -56,7 +56,6 @@ async def register_user_firebase(user: UserRegister):
             email=user.email,
             password=user.password
         )
-        await insert_message_on_queue(user.email)
 
     except Exception as e:
         print(e)
@@ -65,20 +64,20 @@ async def register_user_firebase(user: UserRegister):
             detail=f"Error al registrar usuario: {e}"
         )
 
-    # query = f" exec exampleprep.create_user @email = '{user.email}', @firstname = '{user.firstname}', @lastname = '{user.lastname}'"
-    # result = {}
-    # try:
+    query = f" exec initium.create_user @email = '{user.email}', @firstname = '{user.firstname}', @lastname = '{user.lastname}'"
+    result = {}
+    try:
 
-    #     result_json = await fetch_query_as_json(query, is_procedure=True)
-    #     result = json.loads(result_json)[0]
+        result_json = await fetch_query_as_json(query, is_procedure=True)
+        result = json.loads(result_json)[0]
 
-    #     await insert_message_on_queue(user.email)
+        await insert_message_on_queue(user.email)
 
-    #     return result
+        return result
 
-    # except Exception as e:
-    #     firebase_auth.delete_user(user_record.uid)
-    #     raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        firebase_auth.delete_user(user_record.uid)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 async def login_user_firebase(user: UserLogin):
@@ -100,29 +99,30 @@ async def login_user_firebase(user: UserLogin):
                 detail=f"Error al autenticar usuario: {response_data['error']['message']}"
             )
 
-        # query = f"""select 
-        #                 email
-        #                 , firstname
-        #                 , lastname
-        #                 , active
-        #             from [exampleprep].[users]
-        #             where email = '{ user.email }'
-        #             """
+        query = f"""select 
+                        email
+                        , firstname
+                        , lastname
+                        , active
+                    from [initium].[users]
+                    where email = '{ user.email }'
+                    """
 
-        # try:
-        #     result_json = await fetch_query_as_json(query)
-        #     result_dict = json.loads(result_json)
-        #     return {
-        #         "message": "Usuario autenticado exitosamente",
-        #         "idToken": create_jwt_token(
-        #             result_dict[0]["firstname"],
-        #             result_dict[0]["lastname"],
-        #             user.email,
-        #             result_dict[0]["active"]
-        #         )
-        #     }
-        # except Exception as e:
-        #     raise HTTPException(status_code=500, detail=str(e))
+        try:
+            result_json = await fetch_query_as_json(query)
+            result_dict = json.loads(result_json)
+            return {
+                "message": "Usuario autenticado exitosamente",
+                "idToken": create_jwt_token(
+                    result_dict[0]["firstname"],
+                    result_dict[0]["lastname"],
+                    result_dict[0]["email"],
+                    # user.email,
+                    result_dict[0]["active"]
+                )
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         error_detail = {
             "type": type(e).__name__,
@@ -134,11 +134,10 @@ async def login_user_firebase(user: UserLogin):
             detail=f"Error al login usuario: {error_detail}"
         )
 
-
 async def generate_activation_code(email: EmailActivation):
 
     code = random.randint(100000, 999999)
-    query = f" exec exampleprep.generate_activation_code @email = '{email.email}', @code = {code}"
+    query = f" exec initium.generate_activation_code @email = '{email.email}', @code = {code}"
     result = {}
     try:
         result_json = await fetch_query_as_json(query, is_procedure=True)
