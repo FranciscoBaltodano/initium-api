@@ -1,12 +1,12 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator, EmailStr
 from typing import Optional
 import re
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
-    @validator('password')
+    @field_validator('password')
     def password_validation(cls, value):
         if len(value) < 6:
             raise ValueError('Password must be at least 6 characters long')
@@ -19,12 +19,5 @@ class UserLogin(BaseModel):
 
         if re.search(r'(012|123|234|345|456|567|678|789|890)', value):
             raise ValueError('Password must not contain a sequence of numbers')
-
-        return value
-
-    @validator('email')
-    def email_validation(cls, value):
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
-            raise ValueError('Invalid email address')
 
         return value

@@ -1,13 +1,4 @@
-from pydantic import BaseModel, validator
-from typing import Optional
-import re
+from pydantic import BaseModel, EmailStr
 
 class EmailActivation(BaseModel):
-    email: str
-
-    @validator('email')
-    def email_validation(cls, value):
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
-            raise ValueError('Invalid email address')
-
-        return value
+    email: EmailStr

@@ -19,11 +19,8 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 SECRET_KEY_FUNC = os.getenv("SECRET_KEY_FUNC")
 
-
-
-# Función para crear un JWT
 def create_jwt_token(firstname:str, lastname:str, email: str, active: bool):
-    expiration = datetime.utcnow() + timedelta(hours=1)  # El token expira en 1 hora
+    expiration = datetime.utcnow() + timedelta(hours=1)
     token = jwt.encode(
         {
             "firstname": firstname,
@@ -38,7 +35,6 @@ def create_jwt_token(firstname:str, lastname:str, email: str, active: bool):
     )
     return token
 
-# Crear un decorador para validar el JWT
 def validate(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -76,14 +72,11 @@ def validate(func):
             if not active:
                 raise HTTPException(status_code=403, detail="Inactive user")
 
-            # Inyectar el email en el objeto request
             request.state.email = email
             request.state.firstname = firstname
             request.state.lastname = lastname
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token or expired token")
-
-
 
         return await func(*args, **kwargs)
     return wrapper
@@ -100,9 +93,7 @@ def validate_for_inactive(func):
             raise HTTPException(status_code=400, detail="Authorization header missing")
 
         try:
-            scheme, token = authorization.split()
-            if scheme.lower() != "bearer":
-                raise HTTPException(status_code=400, detail="Invalid authentication scheme")
+            token = authorization.split()[1]
 
             payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
 
@@ -110,18 +101,14 @@ def validate_for_inactive(func):
             expired = payload.get("exp")
 
             if email is None or expired is None:
-                raise HTTPException(status_code=400, detail="Invalid token")
+                raise HTTPException(status_code=422, detail="Missing required fields")
 
             if datetime.utcfromtimestamp(expired) < datetime.utcnow():
                 raise HTTPException(status_code=401, detail="Expired token")
 
-
-
-            # Inyectar el email en el objeto request
             request.state.email = email
         except PyJWTError:
             raise HTTPException(status_code=403, detail="Invalid token or expired token")
-
         return await func(*args, **kwargs)
     return wrapper
 

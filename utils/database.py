@@ -7,7 +7,6 @@ from urllib.parse import quote_plus
 
 load_dotenv()
 
-# Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -16,15 +15,14 @@ server = os.getenv('SQL_SERVER')
 database = os.getenv('SQL_DATABASE')
 username = os.getenv('SQL_USERNAME')
 password = os.getenv('SQL_PASSWORD')
-# password = quote_plus(os.getenv('SQL_PASSWORD'))
 
 connection_string = f"DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}"
 
 async def get_db_connection():
     try:
-        logger.info(f"Intentando conectar a la base de datos con la cadena de conexión: {connection_string}")
+        logger.info(f"Connecting with the database: {connection_string}")
         conn = pyodbc.connect(connection_string, timeout=10)
-        logger.info("Conexión exitosa a la base de datos.")
+        logger.info("Conexión successful")
         return conn
     except pyodbc.Error as e:
         logger.error(f"Database connection error: {str(e)}")
@@ -33,7 +31,7 @@ async def get_db_connection():
 async def fetch_query_as_json(query, is_procedure=False):
     conn = await get_db_connection()
     cursor = conn.cursor()
-    logger.info(f"Ejecutando query: {query}")
+    logger.info(f"Processing query: {query}")
     try:
         cursor.execute(query)
 
@@ -50,7 +48,7 @@ async def fetch_query_as_json(query, is_procedure=False):
         return json.dumps(results)
 
     except pyodbc.Error as e:
-        raise Exception(f"Error ejecutando el query: {str(e)}")
+        raise Exception(f"Error processing query: {str(e)}")
     finally:
         cursor.close()
         conn.close()

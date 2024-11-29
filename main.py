@@ -1,27 +1,24 @@
 import json
 import uvicorn
 
-from typing import Union
-from fastapi import FastAPI, HTTPException, Response, Request
-from utils.database import fetch_query_as_json
-from utils.security import validate, validate_func, validate_for_inactive
-
 from fastapi.middleware.cors import CORSMiddleware
-from models.UserRegister import UserRegister
-from models.UserLogin import UserLogin
-from models.EmailActivation import EmailActivation
+from fastapi import FastAPI, HTTPException, Response
+from utils.database import fetch_query_as_json
 
-from controllers.firebase import register_user_firebase, login_user_firebase, generate_activation_code
+from routers import cards, users
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permitir todos los orígenes
+    allow_origins=["*"],  
     allow_credentials=True,
-    allow_methods=["*"],  # Permitir todos los métodos
-    allow_headers=["*"],  # Permitir todos los encabezados
+    allow_methods=["*"], 
+    allow_headers=["*"], 
 )
+
+app.include_router(cards.router, tags=["cards"])
+app.include_router(users.router, tags=["users"])
 
 @app.get("/")
 async def read_root(response: Response):
@@ -37,44 +34,6 @@ async def read_root(response: Response):
         return result_dict
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-@app.post("/register")
-async def register(user: UserRegister):
-    return  await register_user_firebase(user)
-
-@app.post("/login")
-async def login_custom(user: UserLogin):
-    return await login_user_firebase(user)
-
-@app.get("/user")
-@validate
-async def user(request: Request, response: Response):
-    response.headers["Cache-Control"] = "no-cache";
-    return {
-        "email": request.state.email
-        , "firstname": request.state.firstname
-        , "lastname": request.state.lastname
-    }
-
-@app.post("/user/{email}/code")
-@validate_func
-async def generate_code(request: Request, email: str):
-    e = EmailActivation(email=email)
-    return await generate_activation_code(e)
-
-@app.post("/user/{email}/code")
-@validate_func
-async def generate_code(request: Request, email: str):
-    return await generate_activation_code(email)
-
-# @app.put("/user/code/{code}")
-# @validate_for_inactive
-# async def generate_code(request: Request, code: int):
-#     user = UserActivation(email=Request.state.email, code=code)
-#     return await activate_user(user)
-
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
