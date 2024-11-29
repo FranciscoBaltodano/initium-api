@@ -29,7 +29,7 @@ async def read_root(response: Response):
         result_dict = json.loads(result)
         result_dict = {
             "data": result_dict
-            , "version": "0.0.1"
+            , "version": "0.0.4"
         }
         return result_dict
     except Exception as e:

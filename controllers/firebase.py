@@ -75,7 +75,6 @@ async def register_user_firebase(user: UserRegister):
         return result
 
     except Exception as e:
-        firebase_auth.delete_user(user_record.uid)
         raise HTTPException(status_code=500, detail=str(e))
 
 
