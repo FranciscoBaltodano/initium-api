@@ -128,7 +128,7 @@ async def generate_activation_code(email: EmailActivation):
     query = f" exec initium.generate_activation_code @email = '{email.email}', @code = {code}"
     try:
         await fetch_query_as_json(query, is_procedure=True)
-        return {"message": "Activation code generated successfully"}
+        return {"code": code}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating activation code: {e}")
 
@@ -163,17 +163,15 @@ async def activate_user(user: UserActivation):
 
 async def get_user_by_email(email: str):
     try:
-        # Llamar al procedimiento almacenado para obtener el usuario por email
         query = f"EXEC GetUserByEmail @email = '{email}'"
         result_json = await fetch_query_as_json(query)
 
-        print(f"Result from query: {result_json}")  # Verifica el resultado de la consulta
+        print(f"Result from query: {result_json}")  
         if result_json == "[]":
             raise HTTPException(status_code=404, detail="Activation code not found")
         
         result_dict = json.loads(result_json)[0]
-        # Devuelve los datos del usuario
-        return result_dict  # Tomar el primer (y único) resultado
+        return result_dict
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching user: {str(e)}")
